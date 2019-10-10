@@ -1,0 +1,264 @@
+<div class="container">
+
+
+
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <br/>
+                <h4>Related publications</h4>
+                <ul>
+                    <li>Carzaniga, Gorla, Mattavelli, Perino, Pezz&egrave;, "Automatic Recovery from Runtime Failures",
+                        ICSE 2013. <a href="../../papers/2013-icse-perino.pdf"><i
+                                class="glyphicon glyphicon-file">PDF</i></a></li>
+                    <li>Carzaniga, Gorla, Mattavelli, Perino, "A Self-Healing Technique for Java Applications", ICSE
+                        2012 (poster paper). <a href="../../papers/2012-icse-perino-short.pdf"><i
+                                class="glyphicon glyphicon-file">PDF</i></a></li>
+                </ul>
+                For more information and for the evaluation artifacts please contact: <a
+                    href="http://www.inf.usi.ch/phd/mattavelli">Andrea Mattavelli</a>
+                <br/>
+                <h4>Index</h4>
+                <ol>
+                    <li><a href="#downloads">Downloads</a></li>
+                    <li><a href="#gettingstarted">Getting started</a></li>
+                    <li><a href="#tutorial">Tutorial</a></li>
+                    <ol>
+                        <li><a href="#example1">Example 1: Integrating ARMOR into an Application</a></li>
+                        <li><a href="#example2">Example 2: ARMOR with a Buggy Application</a></li>
+                    </ol>
+                    <li><a href="#limitations">Limitations</a></li>
+                    <li><a href="#license">License</a></li>
+                </ol>
+            </div>
+        </div>
+        <br/>
+
+        <h3 style="text-align: center" id="downloads">Downloads</h3>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                All you need to integrate ARMOR with your application:
+                <ul>
+                    <li>ARMOR source code (please contact: <a href="http://www.inf.usi.ch/phd/mattavelli">Andrea
+                        Mattavelli</a>)
+                    </li>
+                    <li>ARMOR binaries with dependencies (<strong>recommended</strong>) <a
+                            href="downloads/armor-jars.tar.gz"><i class="glyphicon glyphicon-file">TAR</i></a></li>
+                    <li>Rewriting rules <a href="downloads/guava.txt"><i class="glyphicon glyphicon-file">Guava</i></a>
+                        <a href="downloads/jodatime.txt"><i class="glyphicon glyphicon-file">Joda-Time</i></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="text-align: center" id="gettingstarted">Getting started</h3>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <h4>Downloading and compiling ARMOR</h4>
+                <ol>
+                    <li>Request <a href="#downloads">ARMOR source code</a></li>
+                    <li>Launch <code>ant</code> to compile ARMOR. It should take few seconds</li>
+                    <li>You should find the compiled version of ARMOR with all its dependencies into <code>target/deploy/</code>
+                    </li>
+                </ol>
+                <h4>Makefile guide</h4>
+                The easiest way to integrate your application with ARMOR is to modify the Makefile provided in ARMOR
+                source distribution.<br/>
+                <strong>ARMOR-specific</strong>
+                <ul>
+                    <li><code>ARMORROOT</code>: Directory containing ARMOR (absolute path)</li>
+                    <li><code>ARMOR_PRECOMPILED</code>: Destination directory for the precompiled bytecode (relative
+                        path)
+                    </li>
+                    <li><code>ARMOR_DB_ODB</code>: Database file (relative path)</li>
+                    <li><code>ORIG_CLASSESDIR</code>: .class files resulting from the original compilation (relative
+                        path)
+                    </li>
+                    <li><code>ARMOR_CLASSESDIR</code>: .class files resulting from the instrumented compilation
+                        (relative path)
+                    </li>
+                    <li><code>ARMOR_DESTINATIONDIR</code>: Destination directory for the instrumented sources (relative
+                        path)
+                    </li>
+                    <li><code>ARMOR_SWAPBIN</code>: Temporary directory used by ARMOR (relative path)</li>
+                    <li><code>ARMOR_CHECKPOINT_TYPE</code>: Checkpoint type: conservative, conservative-optimized,
+                        runtime, none
+                    </li>
+                    <li><code>LOGGINGLEVEL</code>: Level of logging information: debug, info, warn, error, fatal</li>
+                    <li><code>ARMOR_RULES</code>: Filename of the file containing the transformation rules (relative
+                        path)
+                    </li>
+                </ul>
+
+                <strong>Application-specific</strong>
+                <ul>
+                    <li><code>APPSRC</code>: Directory of the original sources (absolute path)</li>
+                    <li><code>APPCLASSPATH</code>: Classpath for the application (absolute path)</li>
+                    <li><code>LIBSIGNATURE</code>: Signature (or part of) of the redundant library</li>
+                </ul>
+
+                <strong>JAVA-specific</strong>
+                <ul>
+                    <li><code>JAVAROOT</code>: Root directory for Java (absolute path).</li>
+                    <li><code>JAVARUNTIMELIBS</code>: Java Runtime libraries separated by a blank space (absolute path).
+                        Usually only rt.jar (Linux) or classes.jar (Mac Os X) is needed.
+                    </li>
+                    <li><code>JAVABINDIR, JAVA, JAVAC</code>: Default values usually valid</li>
+                </ul>
+
+                <strong>Checkpoint-specific</strong>
+                <ul>
+                    <li><code>IJCP_EXCLUSIONS</code>: lists the prefixes of (full) class names that will be excluded
+                        from the instrumentation of the incremental checkpoint (ijcp). Prefixes are separated by a colon
+                        (':'). Default values usually valid
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="text-align: center" id="tutorial">Tutorial</h3>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <p>This tutorial shows you how to integrate ARMOR with an application called FB2PDF. <a
+                        href="https://code.google.com/p/fb2pdf" target="_blank">FB2PDF</a> is an open-source application
+                    that converts .fb2 e-books to PDF files. FB2PDF natively uses Java standard features to deal with
+                    dates and time. We have manually modified FB2PDF to use the Joda-Time library instead.
+                    <br/>
+                    This tutorial consists of two examples. <a href="#example1">Example 1</a> shows how to integrate and
+                    to run FB2PDF with ARMOR. <a href="#example2">Example 2</a> shows ARMOR effectiveness in avoiding
+                    failures at runtime with a real buggy version of the Joda-Time library.</p>
+                <p>
+                <div class="alert alert-warning">Note: if you want you can download a pre-compiled <a
+                        href="downloads/makefile.tar.gz">Makefile</a> with most of the properties required. You still
+                    need to fill the properties concerning your Java environment (JAVAROOT, JAVARUNTIMELIBS).
+                </div>
+                </p>
+
+                <h4><a id="example1"></a>Example 1 - FB2PDF with a working version of Joda-Time</h4>
+                <h5>Downloading FB2PDF and running it</h5>
+                <ol>
+                    <li>Download the modified FB2PDF application <a href="downloads/fb2pdf-Demo.tar.gz">tar.gz</a></li>
+                    <li>Launch <code>ant</code> to compile the application. It should take few seconds</li>
+                    <li>Launch <code>./run.sh</code> to run the application with an example</li>
+                </ol>
+                <h5>Working with ARMOR</h5>
+                <ol>
+                    <li>Copy <a href="#downloads">ARMOR</a> (armor/ directory) into the main experiment directory of
+                        FB2PDF
+                    </li>
+                    <li>Go into FB2PDF main directory</li>
+                    <li>Download the <a href="#downloads">Joda-Time rewriting rules</a></li>
+                    <li>Set up ARMOR using the <a href="#makefile">Makefile</a>. The properties that you have to set up
+                        are:
+                    </li>
+                    <ol>
+                        <li><code>ORIG_CLASSESDIR</code>, path to the .class files of the application</li>
+                        <li><code>ARMOR_RULES</code>, name of the file containing the transformation rules</li>
+                        <li><code>APPSRC</code>, directory of the original sources</li>
+                        <li><code>APPCLASSPATH</code>, classpath for the application</li>
+                        <li><code>LIBSIGNATURE</code>, signature (or part of) of the redundant library</li>
+                        <li><code>JAVAROOT</code>, absolute path of your Java home directory</li>
+                        <li><code>JAVARUNTIMELIBS</code>, Java Runtime libraries separated by a blank space. Only the
+                            rt.jar file is needed for this example
+                        </li>
+                        <li><code>JAVAFLAG</code>, additional flags to use for running Java code. We suggest you to add
+                            -Xmx2G
+                        </li>
+                    </ol>
+                    <li>Launch <code>make run-armor</code> to instrument the source code of FB2PDF. The process should
+                        take 2-5 minutes, depending on your computational resources
+                    </li>
+                    <li>Launch <code>ant -f build-armor.xml</code> to compile FB2PDF with ARMOR instrumentation. It
+                        should take few seconds
+                    </li>
+                    <li>Launch <code>./run-armor.sh</code> to run FB2PDF with ARMOR agent</li>
+                </ol>
+
+                <br/>
+
+                <h4><a id="example2"></a>Example 2 - FB2PDF with a buggy version of Joda-Time</h4>
+                <h5>Downloading FB2PDF and running it</h5>
+                <ol>
+                    <li>Download the modified buggy FB2PDF application <a
+                            href="downloads/fb2pdf-bug1375249-Demo.tar.gz">tar.gz</a></li>
+                    <li>Launch <code>ant</code> to compile the application. It should take few seconds</li>
+                    <li>Launch <code>./run.sh</code> to run the application with an example. The application should fail
+                        with an exception
+                    </li>
+                </ol>
+                <h5>Working with ARMOR</h5>
+                <ol>
+                    <li>Copy <a href="#downloads">ARMOR</a> (armor/ directory) into the main experiment directory of
+                        FB2PDF
+                    </li>
+                    <li>Go into FB2PDF main directory</li>
+                    <li>Download the <a href="#downloads">Joda-Time rewriting rules</a></li>
+                    <li>Set up ARMOR using the <a href="#makefile">Makefile</a>. The properties that you have to set up
+                        are:
+                    </li>
+                    <ol>
+                        <li><code>ORIG_CLASSESDIR</code>, path to the .class files of the application</li>
+                        <li><code>ARMOR_RULES</code>, name of the file containing the transformation rules</li>
+                        <li><code>APPSRC</code>, directory of the original sources</li>
+                        <li><code>APPCLASSPATH</code>, classpath for the application</li>
+                        <li><code>LIBSIGNATURE</code>, signature (or part of) of the redundant library</li>
+                        <li><code>JAVAROOT</code>, absolute path of your Java home directory</li>
+                        <li><code>JAVARUNTIMELIBS</code>, Java Runtime libraries separated by a blank space. Only the
+                            rt.jar file is needed for this example
+                        </li>
+                        <li><code>JAVAFLAG</code>, additional flags to use for running Java code. We suggest you to add
+                            -Xmx2G
+                        </li>
+                    </ol>
+                    <li>Launch <code>make run-armor</code> to instrument the source code of FB2PDF. The process should
+                        take 2-5 minutes, depending on your computational resources
+                    </li>
+                    <li>Launch <code>ant -f build-armor.xml</code> to compile FB2PDF with ARMOR instrumentation. It
+                        should take few seconds
+                    </li>
+                    <li>Launch <code>./run-armor.sh</code> to run FB2PDF with ARMOR agent. The application should behave
+                        correctly as in <a href="#example1">Example 1</a></li>
+                </ol>
+            </div>
+        </div>
+
+        <h3 style="text-align: center" id="limitations">Limitations</h3>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                The current implementation of ARMOR has the following limitations:
+                <ol>
+                    <li>it supports the Java language up to Java 6</li>
+                    <li>it supports single library self-healing (only one library at time can be made self-healing)</li>
+                    <li>it works for single threaded Java applications</li>
+                    <li>to take advantage of ARMOR, you need a JVM that supports class redefinition, such as the <a
+                            href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_blank">Oracle
+                        HotSpot JVM</a></li>
+                </ol>
+            </div>
+        </div>
+
+        <h3 style="text-align: center" id="license">License</h3>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <div class="well well-lg">
+                    ARMOR is free software: you can redistribute it and/or modify it under the terms of the GNU General
+                    Public License as published by the Free Software Foundation, either version 3 of the License, or (at
+                    your option) any later version.<br/>
+                    <br/>
+                    This program is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without
+                    even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+                    General Public License for more details.<br/>
+                    <br/>
+                    You should have received a copy of the GNU General Public License along with ARMOR. If not, see <a
+                        href="http://www.gnu.org/licenses">http://www.gnu.org/licenses</a>
+                </div>
+            </div>
+        </div>
+        <hr/>
+    </div>
+    <div class="footer">
+        <p>
+            &copy; 2014
+        </p>
+    </div>
+</div>
+

@@ -1,0 +1,1678 @@
+
+
+			<div class="col-md-12">
+				
+				<h2 style="margin-top: 5px;	margin-bottom: 5px; text-align: center;"><small>(<b>S</b>earch-<b>B</b>ased synthesis of <b>E</b>quivalent method <b>S</b>equences)</small></h2>
+
+				<div class="row">
+					<div class="col-md-10 col-md-offset-1">
+						SBES is a search-based technique to synthesize sequences of method invocations that are equivalent to a target method within a finite set of execution scenarios.
+						The experimental results obtained on 47 methods from 7 classes (<code>java.util.Stack</code> and 6 from <code>org.graphstream</code>) show that the proposed approach correctly identifies equivalent method sequences in the majority of the cases where redundancy was known to exist, with few false positives.
+						<br/>
+						<br/>
+						For more information please contact: <a href="http://www.inf.usi.ch/phd/mattavelli">Andrea Mattavelli</a>
+						<br/>
+						<h4>Index</h4>
+						<ol>
+							<li><a href="#replication">Replication Package</a></li>
+							<li><a href="#evaluation">Extended Results from Our Evaluation</a></li>
+							<ol>
+							<li><a href="#effectiveness">Effectiveness of the Approach</a></li>
+							<li><a href="#efficiency">Efficiency of the Approach</a></li>
+							<li><a href="#counterexample">Effectiveness of the Counterexample</a></li>
+							</ol>
+							</li>
+						</ol>
+					</div>
+				</div>
+				<br/>
+				<h3 style="text-align: center" id="replication">Replication Package</h3>
+				<div class="row">
+					<div class="col-md-10 col-md-offset-1">
+						The artifact is structured as follows:
+						<ul>
+							<li><code>common.mk</code> configuration file to set environment and SBES-specific properties.</li>
+							<li><code>experiments</code> is the main folder of the evaluation, and it is structured as follows:
+								<ul>
+									<li><code>graphstream/</code> contains all the experiments on the graphstream classes.</li>
+									<li><code>java/</code> contains all the experiments on the Stack class.</li>
+									<li><code>Makefile</code> is the script used to execute all the experiments.</li>
+								</ul>
+							<li><code>libraries</code>: folder containing all the case studies dependencies.</li>
+							<li><code>tools</code>: folder containing SBES, all its dependencies and the scripts to extract the salient data from the execution logs of the experiments.</li>
+						</ul>
+            			This section explains how to replicate our experimental evaluation of SBES.
+
+            			<h4>Requirements</h4>
+            			To replicate our experiments, you need a Unix-like operating system (Linux or Mac OS X). You also need:
+						<ul>
+							<li>JDK 1.7</li>
+							<li>GNU make</li>
+							<li>Python 2.7</li>
+						</ul>
+						<h4>Step by step Experiments Replication</h4>
+						This step-by-step tutorial focuses on the evaluation of our technique.
+						<p>Note that a make command can be parallelized using the <code>-j</code> option (see <a href="http://www.gnu.org/software/make/manual/make.html#Parallel">Make documentation on parallelization</a>).</p>
+						<ol>
+						<li>Download the package: <a href="SBES_Evaluation.zip">SBES_Evaluation.zip</a>. Extract the archive and go to the proper directory.
+							<pre>unzip SBES_Evaluation.zip<br>cd SBES_Evaluation/</pre>
+						</li>
+						<li>Configure the file <code>common.mk</code> with your Java home path.
+							<pre>emacs common.mk<br/><br/>[...]<br/>##<br/>## JAVA<br/>##<br/>JAVAROOT=/tools/jdk1.7.0_05</pre>
+						</li>
+
+						<li>Go to the experiments directory of the replication package: 
+							<pre>cd ~/SBES_Evaluation/experiments</pre>
+						</li>
+						<li>Now you can run different types of experiments (each one includes running 30 times SBES on each target method):
+							<ul>
+								<li>one single method at a time;
+									<pre>make CLASS=java/stack TARGET_METHODS=stack.util.Stack.addElement\(Object\)</pre>
+								</li>
+								<li>one single class at a time (with all its methods);
+									<pre>make CLASS=java/stack</pre>
+								</li>
+								<li>the whole set of experiments. This command invokes make data at the end of the execution.
+									<pre>make fse2014</pre>
+								</li>
+							</ul>
+							The replication of the entire evaluation process requires several hours (for example, it requires up to 20 hours on a server with 16 parallel jobs, that is with <code>-j16</code> option).
+							If you want to limit the number of iterations, you can run all the aforementioned commands with the option ITER.
+						<pre>make fse2014 ITER=10</pre>
+						</li>
+						<li>To clean the experiments you can either erase all data
+							<pre>make veryclean</pre>
+							or erase the data of a particular class.
+							<pre>make clean CLASS=java/stack</pre>
+						</li>
+						<li>Now you can invoke the scripts to generate the reports (if you invoke the whole execution of the experiments you do not need to invoke this command).
+							<pre>make data</pre>
+						</li>
+						</ol>
+						<br/>
+						
+						<h4>Checking the Results of the Experiments</h4>
+						
+						<strong>Effectiveness</strong> After the invocation of <code>make data</code>, in the <code>experiments</code> folder there should be two files named <code>graphstream_es.txt</code> and <code>java_es.txt</code>.<br/>
+						Each file reports, for each triple of class-method-iteration, the list of synthesized equivalent sequences. For example:
+						<pre>cat graphstream_es.txt<br/>========== graphstream/edge/org.graphstream.graph.implementations.AbstractEdge.addAttribute(String,Object)/1/log<br/>EqSeq1 clone.setAttribute(p0, p1);<br/>EqSeq2 clone.changeAttribute(p0, p1); [...]<br/></pre>
+						The manual inspection of those two files allows the generation of the data to fill both Table 1 and Table 2 (RQ1 and RQ2), and Table 4 (RQ4) in the paper.<br/><br/>
+						
+						<strong>Efficiency</strong> SBES stores the time required to perform each step of the technique in a CSV file named <code>output.csv</code>. This file is stored in a directory with the same name as the current method under investigation (for example, stack.util.Stack.addElement(Object)) inside the iteration directory. The CSV file is structured as follows:
+						<ul>
+							<li><strong>process</strong> reports the overall computation time (ms)</li>
+							<li><strong>scenario</strong> reports the time spent to parse the execution scenario (ms)</li>
+							<li><strong>synthesis</strong> reports the time spent to synthesize an equivalent sequence (ms)</li>
+							<li><strong>counterexample</strong> reports the time spent to generate a counterexample (ms)</li>
+							<li><strong>iteration</strong> reports the time spent for each iteration, that is the time required to create the stubs, to synthesize an equivalent sequence and to generate a counterexample (ms)</li>
+						</ul>
+						The make data command leads to the generation of two CSV files for each class XYZ:
+						<ol>
+							<li><code>max_synthesis_time_XYZ.csv</code> contains two different columns: first, an identifier composed of the pair <method name;iteration number>; second, the corresponding maximum time required to synthesize an equivalent sequence (in seconds).</li>
+							<li><code>max_counterexample_time_XYZ.csv</code> contains two different columns: first, an identifier composed of the pair <method name;iteration number>; second, the corresponding maximum time required to generate a counterexample (in seconds).</li>
+						</ol>
+						To fill Table 3 (RQ3) it is sufficient to open each CSV file and to compute the maximum and the median time of all the reported experiments.
+					</div>
+				</div>
+
+				<br/>
+				<h3 style="text-align: center" id="evaluation">Evaluation</h3>
+				<div class="row">
+					<div class="col-md-10 col-md-offset-1 text-center">
+						In this section we report the complete and extensive set of results obtained by applying SBES on 47 methods from 7 classes.
+					</div>
+				</div>
+
+				<br/>
+				<h5 style="text-align: center" id="effectiveness">Table 2: RQ1, RQ2: Effectiveness of the Approach</h5>
+				<ul>
+					<li><strong>FP</strong> - Total number of false positives on 30 runs</li>
+					<li><strong>Min</strong> - Minimum number of equivalent sequences synthesized (true positives) on 1 run</li>
+					<li><strong>Max<sub>T</sub></strong> - Maximum number of equivalent sequences synthesized (true positives) on 30 runs</li>
+					<li><strong>Max<sub>R</sub></strong> - Maximum number of equivalent sequences synthesized (true positives) on 1 run</li>
+					<li><strong>AVG</strong> - Average number of equivalent sequences synthesized (true positives)</li>
+					<li><strong>Prec</strong> - Precision</li>
+					<li><strong>Rec</strong> - Recall</li>
+				</ul>
+				<table class="table table-bordered table-condensed">
+					<thead style="background-color: #f7f7f9">
+						<tr>
+	  						<th align="center" rowspan="2" style="vertical-align:middle">Case Study</th>
+	  						<th align="center" colspan="2">Equivalent Sequences</th>
+							<th align="center" colspan="7">Synthesized Equivalences</th>
+						</tr>
+						<tr>
+							<th>Original</th>
+							<th>Equivalent</th>
+							<th width="50px">FP</th>
+							<th width="50px">Min</th>
+							<th width="50px">Max<sub>T</sub></th>
+							<th width="50px">Max<sub>R</sub></th>
+							<th width="50px">AVG</th>
+							<th width="50px">Prec</th>
+							<th width="50px">Rec</th>
+						</tr>
+					</thead>
+
+					<tr>
+						<td rowspan="44" style="text-align:center; vertical-align:middle">java.util.Stack</td>
+						<td rowspan="2" style="vertical-align:middle">add(int index, E item)</td>
+						<td>insertElementAt(item, index)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.43</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>addAll(index, collection)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="6" style="vertical-align:middle">add(E item)</td>
+						<td>addAll(size(), new Collection&lt;E&gt;(item))</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2.10</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">0.50</td>
+					</tr>
+					<tr>
+						<td>addAll(index, collection)</td>
+					</tr>
+					<tr>
+						<td>addElement(item)</td>
+					</tr>
+					<tr>
+						<td>add(size(), item)</td>
+					</tr>
+					<tr>
+						<td>insertElementAt(item, size())</td>
+					</tr>
+					<tr>
+						<td>push(item)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="6" style="vertical-align:middle">addElement(E item)</td>
+						<td>addAll(size(), new Collection&lt;E&gt;(item))</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">4</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2.17</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">0.70</td>
+					</tr>
+					<tr>
+						<td>addAll(index, collection)</td>
+					</tr>
+					<tr>
+						<td>add(item)</td>
+					</tr>
+					<tr>
+						<td>add(size(), item)</td>
+					</tr>
+					<tr>
+						<td>insertElementAt(item, size())</td>
+					</tr>
+					<tr>
+						<td>push(item)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">clear()</td>
+						<td>removeAllElements()</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">2.77</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0.99</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>retainAll(empty collection)</td>
+					</tr>
+					<tr>
+						<td>setSize(0)</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">elementAt(index)</td>
+						<td>get(index)</td>
+						<td style="text-align:right; vertical-align:middle">7</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.90</td>
+						<td style="text-align:right; vertical-align:middle">0.79</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">firstElement()</td>
+						<td>get(0)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">6</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.57</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.89</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>elementAt(0)</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">get(index)</td>
+						<td>elementAt(index)</td>
+						<td style="text-align:right; vertical-align:middle">6</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.80</td>
+						<td style="text-align:right; vertical-align:middle">0.80</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">indexOf(Object item)</td>
+						<td>indexOf(item, 0)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">4</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.70</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.93</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>lastIndexOf(item)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="4" style="vertical-align:middle">lastElement()</td>
+						<td>peek()</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1.17</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.97</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.50</td>
+					</tr>
+					<tr>
+						<td>elementAt(size()-1)</td>
+					</tr>
+					<tr>
+						<td>get(size()-1)</td>
+					</tr>
+					<tr>
+						<td>obj=pop(); push(obj)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">peek()</td>
+						<td>lastElement()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.23</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.97</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>obj=pop(); push(obj)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">pop()</td>
+						<td>peek(); removeElementAt(size() -1)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.60</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>remove(size()-1)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="6" style="vertical-align:middle">push(E item)</td>
+						<td>addAll(size(), new Collection&lt;E&gt;(item))</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="6" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>addAll(index, collection)</td>
+					</tr>
+					<tr>
+						<td>add(item)</td>
+					</tr>
+					<tr>
+						<td>add(size(), item)</td>
+					</tr>
+					<tr>
+						<td>insertElementAt(item, size())</td>
+					</tr>
+					<tr>
+						<td>addElement(item)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="4" style="vertical-align:middle">remove(E element)</td>
+						<td>removeElement(E element)</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.80</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.92</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.50</td>
+					</tr>
+					<tr>
+						<td>removeElementAt(lastIndexOf(E element))</td>
+					</tr>
+					<tr>
+						<td>removeElementAt(indexOf(E element))</td>
+					</tr>
+					<tr>
+						<td>removeAll(Collection(E element))</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">remove(int index)</td>
+						<td>removeElementAt(int index)</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.60</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">set(int index, E element)</td>
+						<td>remove(index); add(index, element)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">8</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.50</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.65</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>setElementAt(element, index)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="5" style="text-align:center; vertical-align:middle">graphstream.Path</td>
+						<td rowspan="2" style="vertical-align:middle">getEdgeCount()</td>
+						<td>getEdgeSet().size()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">20</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.80</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.73</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getEdgePath().size()</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getNodeCount()</td>
+						<td>getNodePath().size()</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">30</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">2.77</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0.73</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getNodeSet().size()</td>
+					</tr>
+					<tr>
+						<td>size()</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="20" style="text-align:center; vertical-align:middle">graphstream.Edge</td>
+						<td rowspan="2" style="vertical-align:middle">getNode0()</td>
+						<td>getSourceNode()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>node=getTargetNode(); getOpposite(node)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">getSourceNode()</td>
+						<td>getNode0()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">11</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.85</td>
+					</tr>
+					<tr>
+						<td>node=getTargetNode(); getOpposite(node)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">getNode1()</td>
+						<td>getTargetNode()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.97</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>node=getSourceNode(); getOpposite(node)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">getTargetNode()</td>
+						<td>getNode1()</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">15</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0.80</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>node=getSourceNode(); getOpposite(node)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">changeAttribute(String attribute, Object... values)</td>
+						<td>setAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>addAttribute(String attribute, Object… values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">setAttribute(String attribute, Object... values)</td>
+						<td>addAttribute(String attribute, Object… values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>changeAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">addAttribute(String attribute, Object... values)</td>
+						<td>changeAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>setAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getAttribute(String)</td>
+						<td>getFirstAttributeOf(String...)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.57</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getFirstAttributeOf(String...)</td>
+						<td>getAttribute(String)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.80</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="12" style="text-align:center; vertical-align:middle">graphstream.SingleNode</td>
+						<td rowspan="2" style="vertical-align:middle">changeAttribute(String attribute, Object... values)</td>
+						<td>setAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>addAttribute(String attribute, Object… values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">setAttribute(String attribute, Object... values)</td>
+						<td>addAttribute(String attribute, Object… values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>changeAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">addAttribute(String attribute, Object... values)</td>
+						<td>changeAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>setAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getAttribute(String)</td>
+						<td>getFirstAttributeOf(String...)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0.63</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getFirstAttributeOf(String...)</td>
+						<td>getAttribute(String)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.50</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="12" style="text-align:center; vertical-align:middle">graphstream.MultiNode</td>
+						<td rowspan="2" style="vertical-align:middle">changeAttribute(String attribute, Object... values)</td>
+						<td>setAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>addAttribute(String attribute, Object… values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">setAttribute(String attribute, Object... values)</td>
+						<td>addAttribute(String attribute, Object… values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>changeAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="2" style="vertical-align:middle">addAttribute(String attribute, Object... values)</td>
+						<td>changeAttribute(String attribute, Object... values)</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">2.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="2" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>setAttribute(String attribute, Object... values)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getAttribute(String)</td>
+						<td>getFirstAttributeOf(String...)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.20</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="3" style="vertical-align:middle">getFirstAttributeOf(String...)</td>
+						<td>getAttribute(String)</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.17</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="3" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>getFirstAttributeOf(Class&lt;?&gt;, String...)</td>
+					</tr>
+					<tr>
+						<td>getAttribute(String,Class&lt;?&gt;)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="21" style="text-align:center; vertical-align:middle">graphstream.Vector2</td>
+						<td style="vertical-align:middle">x()</td>
+						<td>at(0)</td>
+						<td style="text-align:right; vertical-align:middle">7</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.23</td>
+						<td style="text-align:right; vertical-align:middle">0.50</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">y()</td>
+						<td>at(1)</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.27</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td rowspan="5" style="vertical-align:middle">set(double x, double y)</td>
+						<td>set(0, x); set(1, y)</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">5</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">5</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">1.37</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>v=new Vector2(x, y); copy(v)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(x, y); copy(p)</td>
+					</tr>
+					<tr>
+						<td>v=new Vector2(x, y); add(v)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(); p.moveTo(x, y); copy(p)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="10" style="vertical-align:middle">fill(double value)</td>
+						<td>p=new Point2(); p.setX(value); p.setY(value); copy(p)</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">10</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">7</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">3.87</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">0.97</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>v=new Vector2(value, value); copy(value)</td>
+					</tr>
+					<tr>
+						<td>v=new Vector2(value, value); add(value)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(value, value); set(p.x, p.y)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(); p.move(value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(); p.moveTo(value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point2(); p.make(value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>scalarAdd(value)</td>
+					</tr>
+					<tr>
+						<td>scalarSub(value); scalarDiv(-1)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="4" style="vertical-align:middle">copy(Vector2 v)</td>
+						<td>set(v.x(), v.y())</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">4</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1.23</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.93</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>add(v)</td>
+					</tr>
+					<tr>
+						<td>fill(1); mult(v)</td>
+					</tr>
+					<tr>
+						<td>set(v.x, v.y)</td>
+					</tr>
+
+
+					<tr>
+						<td rowspan="22" style="text-align:center; vertical-align:middle">graphstream.Vector3</td>
+						<td style="vertical-align:middle">x()</td>
+						<td>at(0)</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.10</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">y()</td>
+						<td>at(1)</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.27</td>
+						<td style="text-align:right; vertical-align:middle">0.89</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td style="vertical-align:middle">z()</td>
+						<td>at(2)</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">1</td>
+						<td style="text-align:right; vertical-align:middle">0.20</td>
+						<td style="text-align:right; vertical-align:middle">0.86</td>
+						<td style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+
+					<tr>
+						<td rowspan="5" style="vertical-align:middle">set(double x, double y, double z)</td>
+						<td>set(0, x); set(1, y); set (2, z)</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">5</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">3</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">0.40</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">1.00</td>
+						<td rowspan="5" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>v=new Vector3(x, y, z); copy(v)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(x, y, z); copy(p)</td>
+					</tr>
+					<tr>
+						<td>v=new Vector3(x, y, z); add(v)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(); p.moveTo(x, y, z); copy(p)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="10" style="vertical-align:middle">fill(double value)</td>
+						<td>p=new Point3(); p.setX(value); p.setY(value); p.setZ(value); copy(p)</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">37</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">10</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">6</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">0.14</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">0.10</td>
+						<td rowspan="10" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>v=new Vector3(value, value, value); copy(value)</td>
+					</tr>
+					<tr>
+						<td>v=new Vector3(value, value, value); add(value)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(value, value, value); set(p.x, p.y, p.z)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(value, value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(); p.move(value, value, value; copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(); p.moveTo(value, value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>p=new Point3(); p.make(value, value, value); copy(p)</td>
+					</tr>
+					<tr>
+						<td>scalarAdd(value)</td>
+					</tr>
+					<tr>
+						<td>scalarSub(value); scalarDiv(-1)</td>
+					</tr>
+
+					<tr>
+						<td rowspan="4" style="vertical-align:middle">copy(Vector3 v)</td>
+						<td>set(v.x(), v.y(), v.z())</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">4</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">4</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">2.27</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">0.99</td>
+						<td rowspan="4" style="text-align:right; vertical-align:middle">1.00</td>
+					</tr>
+					<tr>
+						<td>add(v)</td>
+					</tr>
+					<tr>
+						<td>fill(1); mult(v)</td>
+					</tr>
+					<tr>
+						<td>set(v.x, v.y, v.z)</td>
+					</tr>				
+
+				</table>
+
+				<br/>
+				<div class="row">
+					<div class="col-md-10 col-md-offset-1">
+						<h5 style="text-align: center" id="efficiency">Table 3: RQ3: Efficiency of the Approach</h5>
+						<table class="table table-bordered table-condensed">
+							<thead style="background-color: #f7f7f9">
+								<tr>
+			  						<th colspan="2" rowspan="2" align="center" style="vertical-align:middle">Case Study</th>
+			  						<th align="center" colspan="2">Synthesis Time</th>
+									<th align="center" colspan="2">Counterexample Time</th>
+								</tr>
+								<tr>
+			  						<th align="center" width="89px">AVG</th>
+									<th align="center" width="89px">Median</th>
+									<th align="center" width="89px">AVG</th>
+									<th align="center" width="89px">Median</th>
+								</tr>
+							</thead>
+							<tr>
+								<td rowspan="15" align="center" style="vertical-align:middle">java.util.Stack</td>
+								<td>add(int index, E item)</td>
+								<td style="text-align:right">19.4s</td>
+								<td style="text-align:right">12.0s</td>
+								<td style="text-align:right">16.0s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td>add(E item)</td>
+								<td style="text-align:right">19.6s</td>
+								<td style="text-align:right">17.0s</td>
+								<td style="text-align:right">-</td>
+								<td style="text-align:right">-</td>
+							</tr>
+							<tr>
+								<td>addElement(E item)</td>
+								<td style="text-align:right">19.7s</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">-</td>
+								<td style="text-align:right">-</td>
+							</tr>
+							<tr>
+								<td>clear()</td>
+								<td style="text-align:right">19.8s</td>
+								<td style="text-align:right">14.0s</td>
+								<td style="text-align:right">14.6s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td>elementAt(index)</td>
+								<td style="text-align:right">47.2s</td>
+								<td style="text-align:right">24.0s</td>
+								<td style="text-align:right">12.5s</td>
+								<td style="text-align:right">11.0s</td>
+							</tr>
+							<tr>
+								<td>firstElement()</td>
+								<td style="text-align:right">43.0s</td>
+								<td style="text-align:right">19.0s</td>
+								<td style="text-align:right">9.2s</td>
+								<td style="text-align:right">9.0s</td>
+							</tr>
+							<tr>
+								<td>get(index)</td>
+								<td style="text-align:right">39.0s</td>
+								<td style="text-align:right">24.5s</td>
+								<td style="text-align:right">11.5s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td>indexOf(Object item)</td>
+								<td style="text-align:right">40.6s</td>
+								<td style="text-align:right">27.0s</td>
+								<td style="text-align:right">10.1s</td>
+								<td style="text-align:right">9.0s</td>
+							</tr>
+							<tr>
+								<td>lastElement()</td>
+								<td style="text-align:right">18.8s</td>
+								<td style="text-align:right">12.0s</td>
+								<td style="text-align:right">9.0s</td>
+								<td style="text-align:right">9.0s</td>
+							</tr>
+							<tr>
+								<td>peek()</td>
+								<td style="text-align:right">20.7s</td>
+								<td style="text-align:right">11.5s</td>
+								<td style="text-align:right">13.7s</td>
+								<td style="text-align:right">10.0s</td>
+							</tr>
+							<tr>
+								<td>pop()</td>
+								<td style="text-align:right">26.2s</td>
+								<td style="text-align:right">20.0s</td>
+								<td style="text-align:right">22.2s</td>
+								<td style="text-align:right">16.0s</td>
+							</tr>
+							<tr>
+								<td>push(E item)</td>
+								<td style="text-align:right">19.2s</td>
+								<td style="text-align:right">19.0s</td>
+								<td style="text-align:right">-</td>
+								<td style="text-align:right">-</td>
+							</tr>
+							<tr>
+								<td>remove(E element)</td>
+								<td style="text-align:right">21.2s</td>
+								<td style="text-align:right">22.0s</td>
+								<td style="text-align:right">17.8s</td>
+								<td style="text-align:right">20.0s</td>
+							</tr>
+							<tr>
+								<td>remove(index)</td>
+								<td style="text-align:right">36.6s</td>
+								<td style="text-align:right">21.5s</td>
+								<td style="text-align:right">21.0s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td>set(int index, E element)</td>
+								<td style="text-align:right">84.2s</td>
+								<td style="text-align:right">62.0s</td>
+								<td style="text-align:right">12.5s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="2" align="center" style="vertical-align:middle">graphstream.Path</td>
+								<td >getEdgeCount()</td>
+								<td style="text-align:right">19.7s</td>
+								<td style="text-align:right">16.0s</td>
+								<td style="text-align:right">18.4s</td>
+								<td style="text-align:right">15.0s</td>
+							</tr>
+							<tr>
+								<td >getNodeCount()</td>
+								<td style="text-align:right">35.9s</td>
+								<td style="text-align:right">28.0s</td>
+								<td style="text-align:right">12.0s</td>
+								<td style="text-align:right">12.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="9" align="center" style="vertical-align:middle">graphstream.Edge</td>
+								<td >getNode0()</td>
+								<td style="text-align:right">19.1s</td>
+								<td style="text-align:right">19.0s</td>
+								<td style="text-align:right">6.0s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getSourceNode()</td>
+								<td style="text-align:right">82.8s</td>
+								<td style="text-align:right">80.5s</td>
+								<td style="text-align:right">6.0s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getNode1()</td>
+								<td style="text-align:right">15.8s</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">6.2s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getTargetNode()</td>
+								<td style="text-align:right">70.3s</td>
+								<td style="text-align:right">36.0s</td>
+								<td style="text-align:right">5.7s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">14.0s</td>
+								<td style="text-align:right">5.7s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">15.2s</td>
+								<td style="text-align:right">14.0s</td>
+								<td style="text-align:right">5.8s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, ObjectÉ values)</td>
+								<td style="text-align:right">14.0s</td>
+								<td style="text-align:right">13.0s</td>
+								<td style="text-align:right">5.6s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td style="text-align:right">18.0s</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">5.6s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td style="text-align:right">21.5s</td>
+								<td style="text-align:right">16.5s</td>
+								<td style="text-align:right">5.8s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.SingleNode</td>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">18.0s</td>
+								<td style="text-align:right">17.5s</td>
+								<td style="text-align:right">6.2s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">20.9s</td>
+								<td style="text-align:right">16.0s</td>
+								<td style="text-align:right">5.8s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">18.2s</td>
+								<td style="text-align:right">17.5s</td>
+								<td style="text-align:right">6.2s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td style="text-align:right">15.6s</td>
+								<td style="text-align:right">16.0s</td>
+								<td style="text-align:right">5.3</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td style="text-align:right">12.9s</td>
+								<td style="text-align:right">12.0s</td>
+								<td style="text-align:right">5.1s</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.MultiNode</td>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">25.8s</td>
+								<td style="text-align:right">23.5s</td>
+								<td style="text-align:right">8.2s</td>
+								<td style="text-align:right">8.0s</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td style="text-align:right">24.8s</td>
+								<td style="text-align:right">21.5s</td>
+								<td style="text-align:right">8.2s</td>
+								<td style="text-align:right">8.0s</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, ObjectÉ values)</td>
+								<td style="text-align:right">22.4s</td>
+								<td style="text-align:right">21.5s</td>
+								<td style="text-align:right">8.2s</td>
+								<td style="text-align:right">8.0s</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td style="text-align:right">16.0s</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">5.8s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td style="text-align:right">16.1s</td>
+								<td style="text-align:right">14.0s</td>
+								<td style="text-align:right">5.8s</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.Vector2</td>
+								<td>x()</td>
+								<td style="text-align:right">59.1s</td>
+								<td style="text-align:right">35.0s</td>
+								<td style="text-align:right">6.4s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+							<tr>
+								<td>y()</td>
+								<td style="text-align:right">61.7s</td>
+								<td style="text-align:right">32.0s</td>
+								<td style="text-align:right">20.0s</td>
+								<td style="text-align:right">20.0s</td>
+							</tr>
+							<tr>
+								<td>set(x, y)</td>
+								<td style="text-align:right">32.1s</td>
+								<td style="text-align:right">12.0s</td>
+								<td style="text-align:right">9.2s</td>
+								<td style="text-align:right">10.0s</td>
+							</tr>
+							<tr>
+								<td>fill(double value)</td>
+								<td style="text-align:right">13.6s</td>
+								<td style="text-align:right">15.0s</td>
+								<td style="text-align:right">9.6s</td>
+								<td style="text-align:right">7.0s</td>
+							</tr>
+							<tr>
+								<td>copy(Vector2 v)</td>
+								<td style="text-align:right">18.8s</td>
+								<td style="text-align:right">11.0s</td>
+								<td style="text-align:right">5.2s</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td rowspan="6" align="center" style="vertical-align:middle">graphstream.Vector3</td>
+								<td>x()</td>
+								<td style="text-align:right">25.8s</td>
+								<td style="text-align:right">16.5s</td>
+								<td style="text-align:right">5.0s</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td>y()</td>
+								<td style="text-align:right">49.1s</td>
+								<td style="text-align:right">26.0s</td>
+								<td style="text-align:right">6.5s</td>
+								<td style="text-align:right">6.5s</td>
+							</tr>
+							<tr>
+								<td>z()</td>
+								<td style="text-align:right">110.8s</td>
+								<td style="text-align:right">106.5s</td>
+								<td style="text-align:right">12.5s</td>
+								<td style="text-align:right">12.5s</td>
+							</tr>
+							<tr>
+								<td>set(x, y, z)</td>
+								<td style="text-align:right">95.8s</td>
+								<td style="text-align:right">56.0s</td>
+								<td style="text-align:right">6.7s</td>
+								<td style="text-align:right">5.0s</td>
+							</tr>
+							<tr>
+								<td>fill(double value)</td>
+								<td style="text-align:right">75.5s</td>
+								<td style="text-align:right">10.5s</td>
+								<td style="text-align:right">8.8s</td>
+								<td style="text-align:right">10.0s</td>
+							</tr>
+							<tr>
+								<td>copy(Vector3 v)</td>
+								<td style="text-align:right">80.1s</td>
+								<td style="text-align:right">33.0s</td>
+								<td style="text-align:right">7.1s</td>
+								<td style="text-align:right">6.0s</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+
+				<br/>
+				<div class="row">
+					<div class="col-md-10 col-md-offset-1">
+						<h5 style="text-align: center" id="counterexample">Table 4: RQ4: Effectiveness of the Counterexamples</h5>
+						<table class="table table-bordered table-condensed">
+							<thead style="background-color: #f7f7f9">
+								<tr>
+			  						<th colspan="2" align="center">Case Study</th>
+			  						<th align="center">False Positives</th>
+									<th align="center">Discarded</th>
+									<th align="center">Efficiency</th>
+								</tr>
+							</thead>
+							<tr>
+								<td rowspan="15" align="center" style="vertical-align:middle">java.util.Stack</td>
+								<td>add(int index, E item)</td>
+								<td>0</td>
+								<td>4</td>
+								<td>100%</td>
+							</tr>
+							<tr>
+								<td>add(E item)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>addElement(E item)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>clear()</td>
+								<td>1</td>
+								<td>52</td>
+								<td>98.11%</td>
+							</tr>
+							<tr>
+								<td>elementAt(index)</td>
+								<td>7</td>
+								<td>22</td>
+								<td>75.86%</td>
+							</tr>
+							<tr>
+								<td>firstElement()</td>
+								<td>6</td>
+								<td>12</td>
+								<td>66.66%</td>
+							</tr>
+							<tr>
+								<td>get(index)</td>
+								<td>6</td>
+								<td>9</td>
+								<td>60%</td>
+							</tr>
+							<tr>
+								<td>indexOf(Object item)</td>
+								<td>4</td>
+								<td>18</td>
+								<td>81.81%</td>
+							</tr>
+							<tr>
+								<td>lastElement()</td>
+								<td>1</td>
+								<td>7</td>
+								<td>87.50%</td>
+							</tr>
+							<tr>
+								<td>peek()</td>
+								<td>1</td>
+								<td>21</td>
+								<td>95.45%</td>
+							</tr>
+							<tr>
+								<td>pop()</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>push(E item)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>remove(element)</td>
+								<td>2</td>
+								<td>3</td>
+								<td>60%</td>
+							</tr>
+							<tr>
+								<td>remove(index)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>set(int index, E element)</td>
+								<td>8</td>
+								<td>13</td>
+								<td>61.90%</td>
+							</tr>
+							<tr>
+								<td rowspan="2" align="center" style="vertical-align:middle">graphstream.Path</td>
+								<td>getEdgeCount()</td>
+								<td>20</td>
+								<td>21</td>
+								<td>51.21%</td>
+							</tr>
+							<tr>
+								<td>getNodeCount()</td>
+								<td>30</td>
+								<td>1</td>
+								<td>3%</td>
+							</tr>
+							<tr>
+								<td rowspan="9" align="center" style="vertical-align:middle">graphstream.Edge</td>
+								<td>getNode0()</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getSourceNode()</td>
+								<td>0</td>
+								<td>67</td>
+								<td>100%</td>
+							</tr>
+							<tr>
+								<td>getNode1()</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getTargetNode()</td>
+								<td>15</td>
+								<td>20</td>
+								<td>57.14%</td>
+							</tr>
+							<tr>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, ObjectÉ values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.SingleNode</td>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, ObjectÉ values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.MultiNode</td>
+								<td>changeAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>setAttribute(String attribute, Object values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>addAttribute(String attribute, ObjectÉ values)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getAttribute(String)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>getFirstAttributeOf(String...)</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td rowspan="5" align="center" style="vertical-align:middle">graphstream.Vector2</td>
+								<td>x()</td>
+								<td>7</td>
+								<td>0</td>
+								<td>0%</td>
+							</tr>
+							<tr>
+								<td>y()</td>
+								<td>0</td>
+								<td>2</td>
+								<td>100%</td>
+							</tr>
+							<tr>
+								<td>set(x, y)</td>
+								<td>0</td>
+								<td>17</td>
+								<td>100%</td>
+							</tr>
+							<tr>
+								<td>fill(double value)</td>
+								<td>3</td>
+								<td>12</td>
+								<td>80%</td>
+							</tr>
+							<tr>
+								<td>copy(Vector2 v)</td>
+								<td>3</td>
+								<td>3</td>
+								<td>50%</td>
+							</tr>
+							<tr>
+								<td rowspan="6" align="center" style="vertical-align:middle">graphstream.Vector3</td>
+								<td>x()</td>
+								<td>0</td>
+								<td>0</td>
+								<td>-</td>
+							</tr>
+							<tr>
+								<td>y()</td>
+								<td>1</td>
+								<td>1</td>
+								<td>50%</td>
+							</tr>
+							<tr>
+								<td>z()</td>
+								<td>1</td>
+								<td>2</td>
+								<td>66.66%</td>
+							</tr>
+							<tr>
+								<td>set(x, y, z)</td>
+								<td>0</td>
+								<td>9</td>
+								<td>100%</td>
+							</tr>
+							<tr>
+								<td>fill(double value)</td>
+								<td>37</td>
+								<td>19</td>
+								<td>33.92%</td>
+							</tr>
+							<tr>
+								<td>copy(Vector3 v)</td>
+								<td>1</td>
+								<td>5</td>
+								<td>83.33%</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+
+			</div>
+			<div class="footer">
+				<p>
+					&copy; 2014
+				</p>
+			</div>
+		</div>
+

@@ -1,0 +1,9 @@
+#!/bin/bash 
+
+docker rm nginx-c
+docker image rm alimohebbi/nginx
+docker build --tag alimohebbi/nginx .
+docker run --name nginx-c -p 80:80 -v starlab-ui:/starlab-ui \
+-v /home/star/media:/media \
+-v /home/star/static:/static --network mynet alimohebbi/nginx
+

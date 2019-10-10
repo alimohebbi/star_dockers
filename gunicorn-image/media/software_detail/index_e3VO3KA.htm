@@ -1,0 +1,151 @@
+
+		     <h4>Related publications</h4>
+		     <ul>
+		     <li>Bianchi, Pezz&egrave;, Terragni, "Reproducing Concurrency Failures From Crash Stacks", FSE 2017. 
+		     	<!--<a href="../../papers/2013-icse-perino.pdf"><i class="glyphicon glyphicon-file">PDF</i></a></li>-->
+		     </ul>
+		     For more information and for the evaluation artifacts please contact: <a href="http://www.inf.usi.ch/phd/bianchi/">Francesco Bianchi</a>
+		     <br/>
+		     <h4>Index</h4>
+		     <ol>
+		     <li><a href="#downloads" target="_self">Downloads</a></li>
+		     <li><a href="#gettingstarted">Getting started</a></li>
+		     <li><a href="#tutorial">Tutorial</a></li>
+		     <ol>
+		     <li><a href="#vm-image">Working with the VM image</a></li>
+		     <li><a href="#binaries">Working with the binaries</a></li>
+		     <li><a href="#replicate">Replicate the experiments for FSE '17</a></li>
+		     <li><a href="#subjects">Integrate new subjects</a></li>
+		     </ol>
+		     <!--<li><a href="#limitations">Limitations</a></li>-->
+		     <!--<li><a href="#license">License</a></li>-->
+		     </ol>
+		     </div>
+		     </div>
+		     <br/>
+
+		     <h3 style="text-align: center" id="downloads">Downloads</h3>
+		     <div class="row">
+		     <div class="col-md-10 col-md-offset-1">
+		     To start using ConCrash, you can download:
+		     <ul>
+		     <li>Our VM image with ConCrash ready to use<a href="http://www.inf.usi.ch/phd/bianchi/software/vm-ConCrash.zip"><i class="glyphicon glyphicon-file">VDI</i></a></li>
+		     <li>ConCrash binaries with dependencies <a href="http://www.inf.usi.ch/phd/bianchi/software/bin-ConCrash.tar.gz"><i class="glyphicon glyphicon-file">GZ</i></a></li>(Binaries works with a 64-bit Linux environment)
+		     </ul>
+		     </div>
+		     </div>
+		     <h3 style="text-align: center" id="tutorial">Tutorial</h3>
+		     <div class="row">
+		     <div class="col-md-10 col-md-offset-1">
+
+		     <h4><a id="vm-image"></a>Working with the VM image</h4>
+		     <ol>
+		     <li>Download the VM image <a href="http://www.inf.usi.ch/phd/bianchi/software/vm-ConCrash.zip">VDI</a></li>
+		     <li>To access the VM, use username: concrash password: concrash</li>
+		     <li>No additional steps are required, ConCrash is ready to be used (see <a href="#replicate">Replicate the experiments for FSE '17</a> and <a href="#subjects">Integrate new subjects</a>)</li>
+		     </ol>
+
+		     <h4><a id="binaries"></a>Working with the binaries</h4>
+		     <ol>
+		     <li>Download ConCrash binaries with dependencies <a href="http://www.inf.usi.ch/phd/bianchi/software/bin-ConCrash.tar.gz">GZ</a></li>
+		     <li>Install <a href="https://github.com/Z3Prover/z3">Z3</a>: the ConCrash distribution contains the z3 executable file for Mac OSX. If you use ConCrash in a different environemnt, please install the compatible version. You need to place the executable file in the <code>ConCrash/solvers</code> directory and the file must be named <code>z3</code></li>
+		     <li>Configure <a href="http://javapathfinder.sourceforge.net">JPF</a>: create a file named <code>site.properties</code> in <code>~/.jpf</code> folder (create it if it does not exist). The file must have the following content (you need to change the first path in order to point out your <code>ConCrash/cortex/CortexSE</code> folder:</li>
+
+ 			<p><div class="alert alert-warning">
+ 				#JPF site configuration </br>
+				jpf.home = /your/path/to/concrash/ConCrash/cortex/CortexSE/ </br>
+				jpf-core = ${jpf.home}/jpf-core </br>
+				jpf-concurrent = ${jpf.home}/jpf-concurrent </br>
+				jpf-symbc = ${jpf.home}/jpf-symbc </br>
+				jpf-symbiosis = ${jpf.home}/jpf-symbiosis </br>
+				#extensions+=,${jpf-concurrent} </br>
+ 			</div></p>
+
+		     </ol>
+		     
+
+		     <h4><a id="replicate"></a>Replicate the experiments for FSE'17</h4>
+		     		<ol>
+		     			<li>Launch <code>ConCrash/scripts/experiments/runRQ1.sh</code> to run ConCrash on the 10 subjects used in the evaluation</li>
+		     			<li>Launch <code>ConCrash/scripts/experiments/runRQ2.sh</code> to run ConCrash with the single pruning strategies enabled on the 10 subjects used in the evaluation</li>
+		     			<li>Open the file ConCrash/output/summary_results.csv to see the results. The csv file has the following structure:</li>
+		     				<ol>
+		     					<li><code>TimeStamp</code>, System time in the moment of ConCrash start</li>
+		     					<li><code>Configuration</code>, name of the file containing the transformation rules</li>
+		     						<ol>
+		     							<li><code>ConCrash</code>, Original version of ConCrash with all pruning strategy enabled</li>
+		     							<li><code>PS-Stack</code>, Only PS-Stack pruning strategy enabled</li>
+		     							<li><code>PS-Redundant</code>, Only PS-Redundant pruning strategy enabled</li>
+		     							<li><code>PS-Interleave</code>, Only PS-Interleave pruning strategy enabled</li>
+		     							<li><code>PS-Interfere</code>, Only PS-Interfere pruning strategy enabled</li>
+		     							<li><code>None</code>, None pruning strategy enabled</li>
+		     						</ol>
+		     					<li><code>TimeBudget</code>, Time budget in seconds</li>
+		     					<li><code>RandomSeed</code>, Random seed used in input</li>
+		     					<li><code>Subject</code>, Subject name</li>
+		     					<li><code>TestName</code>, Name of the generated test that reproduces the crash stack </li>
+		     					<li><code>FR</code>, Whether the failure has been successfully reproduced within the time budget</li>
+								<li><code>FRT</code>, The overall elapsed time in seconds for identifying the first test code and failure inducing interleaving</li>
+								<li><code>FTID</code>, The ID of the first failure-inducing test code</li>
+								<li><code>FTS</code>, The size of the failure-inducing test code measured as the total number of outermost method calls in the test code </li>
+		     				</ol>
+		     		</ol>
+		    	<h4><a id="subjects"></a>Integrate new subjects</h4>
+		    	To run ConCrash on a new subject, you need to perform the following steps:
+		    	<ol>
+		    		<li>Create a directory containing your subject in ConCrash/benchmarks (e.g. ConCrash/benchmarks/MySubject)</li>
+		    		<li>Make sure that the directory contains the following sub-directories and files</li>
+		    			<ol>
+		    				<li><code>src</code>, Directory containing the source files of the subject</li>
+		    				<li><code>lib</code>, Directory containing the dependency libraries of the subject</li>
+		    				<li><code>crash-stack</code>, File reporting the crash-stack trace of the failure you want to reproduce</li>
+		    			</ol>
+		    		<li>Launch <code>ConCrash/scripts/experiments/runConCrash.sh</code> to run ConCrash on the subject. The scripts takes as input the following parameters:</li>
+		    			<ol>
+		    				<li><code>Subject</code>, The name of the folder you created in the benchmark folder (e.g. MySubject)</li>
+		    				<li><code>TimeBudget</code>, A time budget in seconds</li>
+		    				<li><code>Configuration</code>, The configuration you want to use (ConCrash, PS-Stack, PS-Redundant, PS-Interleave, PS-Interfere, None). This parameter is optional: if you do not specify it, the configuration ConCrash will be used.</li>
+		    				<li><code>RandomSeed</code>, A random seed to make the execution semi-deterministic</li>
+		    			</ol>
+		    		<li>Open the file ConCrash/output/summary_results.csv to see the results. See <a href="#replicate">Replicate the experiments for FSE '17</a> for the structure of the output file</li>
+		    	</ol>
+
+
+		     </div>
+		     </div>
+
+		     <!--<h3 style="text-align: center" id="limitations">Limitations</h3>
+		     <div class="row">
+		     	<div class="col-md-10 col-md-offset-1">
+		     The current implementation of ARMOR has the following limitations:
+		     <ol>
+		     <li>it supports the Java language up to Java 6</li>
+		     <li>it supports single library self-healing (only one library at time can be made self-healing)</li>
+		     <li>it works for single threaded Java applications</li>
+		     <li>to take advantage of ARMOR, you need a JVM that supports class redefinition, such as the <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_blank">Oracle HotSpot JVM</a></li>
+		     </ol>
+		     </div>
+		     </div>-->
+
+		     <!--<h3 style="text-align: center" id="license">License</h3>
+		     <div class="row">
+		     <div class="col-md-10 col-md-offset-1">
+		     <div class="well well-lg">
+		     ConCrash is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.<br/>
+		     <br/>
+		     This program is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.<br/>
+		     <br/>
+		     You should have received a copy of the GNU General Public License along with ConCrash.  If not, see <a href="http://www.gnu.org/licenses">http://www.gnu.org/licenses</a>
+		     </div>
+		     </div>
+		     </div>
+		     -->
+		     <hr/>
+		     </div>
+		     <div class="footer">
+		     <p>
+		     &copy; 2017
+		     </p>
+		     </div>
+		     </div>
+

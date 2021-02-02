@@ -4,6 +4,7 @@ docker rm nginx-c
 docker image rm alimohebbi/nginx
 docker build --tag alimohebbi/nginx .
 docker run --name nginx-c -p 80:80 -v starlab-ui:/starlab-ui \
--v /Users/usiusi/Documents/docker-start/gunicorn-image/media:/media \
--v /Users/usiusi/Documents/docker-start/gunicorn-image/static:/static --network mynet alimohebbi/nginx
+-v /Users/usiusi/Documents/Repositories/star_dockers/gunicorn-image/media:/media \
+-v /Users/usiusi/Documents/Repositories/star_dockers/gunicorn-image/static:/static \
+--network mynet alimohebbi/nginx
 

@@ -1,7 +1,7 @@
-FROM node:8
-RUN git clone https://github.com/alimohebbi/starlab-ui.git
+FROM node:10
+RUN git clone http://star-rep.inf.usi.ch/Mohebbi/starlab-ui.git
 WORKDIR /starlab-ui
 RUN npm install -g @angular/cli
 RUN npm install 
-ENTRYPOINT git pull https://github.com/alimohebbi/starlab-ui.git && ng build --prod 
+ENTRYPOINT git pull http://star-rep.inf.usi.ch/Mohebbi/starlab-ui.git && ng build --prod 
 

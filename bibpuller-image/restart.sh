@@ -1,3 +1,4 @@
+#!/bin/bash
 docker rm puller-c
 docker image rm alimohebbi/pullerimage:latest
 docker build --tag alimohebbi/pullerimage .

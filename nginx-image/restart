@@ -3,7 +3,7 @@
 docker rm nginx-c
 docker image rm alimohebbi/nginx
 docker build --tag alimohebbi/nginx .
-docker run --name nginx-c -d -p 80:80 -v starlab-ui:/starlab-ui \
+docker run --name nginx-c -d -p 80:80 -p 443:443 -v starlab-ui:/starlab-ui \
 -v /home/star/media:/media \
 -v /home/star/static:/static --network mynet alimohebbi/nginx
 
